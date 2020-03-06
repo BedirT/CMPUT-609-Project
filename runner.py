@@ -23,12 +23,12 @@ num_of_tiles:
 alg = 'REINFORCE'
 # alg = 'SARSA'
 
-num_of_episodes = 1000
-max_steps = 500
-num_of_runs = 100
-num_of_parameters_to_test = 10
+num_of_episodes = 5000
+max_steps = 1000
+num_of_runs = 1
+num_of_parameters_to_test = 1
 
-alpha = 2**(-13) #0.0001
+alpha = 0.5/8
 gamma = 0.98
 seed_num = 1
 
@@ -44,12 +44,11 @@ tilings = tile_coding(grid_size, num_of_tiles, tile_size, 4)
 # print(tilings.num_of_tilings)
 # exit()
  
-env = grid_environment(tilings)
+env = grid_environment()
 np.random.seed(seed_num)
 
 # Keep stats for final print of graph
-alpha_rewards = []
-episode_rewards = np.zeros(num_of_episodes)
+episode_rewards = np.zeros((num_of_parameters_to_test, num_of_runs, num_of_episodes))
 step_took = np.zeros(num_of_episodes)
 
 if alg == 'REINFORCE':
@@ -57,15 +56,12 @@ if alg == 'REINFORCE':
 else:
     agent = SG_SARSA(tilings.num_of_tilings, env.action_space.shape[0], alpha, gamma)
 
-episode_rewards = np.zeros((num_of_parameters_to_test, num_of_episodes))
-for r in tqdm.tqdm(range(num_of_runs)):
-    np.random.seed(r+1)
+for p in tqdm.tqdm(range(num_of_parameters_to_test)):
+    agent.alpha = 2 ** (-p-10)
 
-    for p in tqdm.tqdm(range(num_of_parameters_to_test)):
-        alpha = 2**(-p-10) #0.0001
-        
-        agent.alpha = alpha
-        agent.reset_theta()
+    for r in tqdm.tqdm(range(num_of_runs)):
+        np.random.seed(r+1)
+        agent.reset_weights()
 
         for ep in range(num_of_episodes):
 
@@ -85,7 +81,7 @@ for r in tqdm.tqdm(range(num_of_runs)):
                 else:
                     action = agent.step(state)
                 reward, next_state, done = env.step(action)
-                next_state = tilings.active_tiles(next_state, action)
+                next_state = tilings.active_tiles(next_state)
                 
                 if alg == 'REINFORCE':
                     grad = agent.grad(probs, state, action)
@@ -110,13 +106,9 @@ for r in tqdm.tqdm(range(num_of_runs)):
             else:
                 agent.update(states, actions, rewards)
                 
-            # Append for logging and print
-            # episode_rewards[ep] += score
-            episode_rewards[p][ep] += score
-            step_took[ep] += step_
-            print("EP: ", ep, " Score: ", score, "         ",end="\r", flush=False)     
-        alpha_rewards.append(episode_rewards/num_of_runs)
-        plt.plot(episode_rewards[p], label="a = 2^" +str(-p-10))
+            episode_rewards[p][r][ep] = score
+            print("EP: ", ep, " Score: ", score, "         ",end="\r", flush=False)
+        # plt.plot(episode_rewards[p]/num_of_runs, label="a = 2^" +str(-p-10))
 
 
 ###### SAVING
@@ -133,6 +125,5 @@ np.save(dir_path +"/saves/rewards/"+ alg + '_imp_'+ str(num_of_runs) +'_numruns_
 #     plt.plot(alpha_rewards[i])
 # plt.show()
 
-# plt.plot(episode_rewards/num_of_runs)
+plt.plot(episode_rewards[0][0]/num_of_runs)
 plt.show()
-

@@ -12,7 +12,6 @@ class tile_coding:
         self.num_of_tilings = 0
 
         self._create_tiles()
-        self._create_actions_over_tiles()
 
     def _get_the_tile(self, x, y):
         for i in range(x, x+self.tile_size):
@@ -44,21 +43,13 @@ class tile_coding:
             start_pos = [i, i]
             self._tile_coding(start_pos)
 
-        # self.num_of_tilings += self.action_space # added tiles for actions
-        
-
-    def _create_actions_over_tiles(self):
-        self.feature_space = self.num_of_tilings
-        # self.num_of_tilings *= self.action_space
-
-    def active_tiles(self, s, a=0):
+    def active_tiles(self, s):
         '''
         Main functionality, call it after creating the tiles
         to get the one hot tiling of s
         s: [x, y]
         '''
-        one_hot = np.zeros((self.action_space, self.feature_space))
-        # print(one_hot.shape, self.num_of_tilings, self.action_space, a )
-        one_hot[a][self.tiles[s[0]][s[1]]] = 1 # activate the tile for the action and state
+        one_hot = np.zeros(self.num_of_tilings)
+        one_hot[self.tiles[s[0]][s[1]]] = 1 # activate the tile for the action and state
         
         return one_hot

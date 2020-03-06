@@ -34,11 +34,6 @@ class grid_environment:
         self.reset()
         return self.agent_pos
 
-    def one_hot(self, p):
-        a = np.zeros(len(self.the_world[0]) * len(self.the_world))
-        a[p[0] * len(self.the_world[0]) + p[1]] = 1
-        return a.reshape((a.shape[0], 1))
-
     def step(self, action):
         reward = 0
         done = False
@@ -150,6 +145,14 @@ class grid_environment:
             ['D2','.' , '.', '.', 'P2'],
         ]
 
+        self.the_world = [
+            ['.', '.' , '.', '.', 'G'],
+            ['.', '.' , '.', '.', '.'],
+            ['.', '.' , '.', '.', '.'],
+            ['.', '.' , '.', '.', '.'],
+            ['A', '.' , '.', '.', '.'],
+        ]
+
         # self.the_world = [
         #     ['.','.', '.', '.' , '.', '.', '.', '.', 'G'],
         #     ['.','.', '.', '.' , '.', '.', '.', '.', '.'],
@@ -162,8 +165,8 @@ class grid_environment:
         #     ['A','.', '.', '.' , '.', '.', '.', '.', '.']
         # ]
 
-        # self.agent_start_pos = [8, 0]
-        self.agent_start_pos = [3, 0]
+        self.agent_start_pos = [4, 0]
+        # self.agent_start_pos = [3, 0]
         self.agent_pos = self.agent_start_pos
 
         self.reward_b = 0 # reward when hitting the walls or boundries 
@@ -176,8 +179,8 @@ class grid_environment:
         self.d1_location = [0, 1]
         self.d2_location = [4, 0]
         
-        self.goal_pos = [1, 0]
-        # self.goal_pos = [0, 8]
+        # self.goal_pos = [1, 0]
+        self.goal_pos = [0, 4]
         
         self.grid_size = len(self.the_world)
  

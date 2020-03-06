@@ -8,10 +8,10 @@ class agent_REINFORCE:
         self.feature_space = feature_space
         self.action_space = action_space
 
-        self._reset_weights()
+        self.reset_weights()
 
     def step(self, obs):
-        probs = self._policy(obs)[0]
+        probs = self._policy(obs)
         action = np.random.choice(self.action_space, p = probs)
         return action, probs
 
@@ -23,11 +23,12 @@ class agent_REINFORCE:
     # Jacobian softmax
     def _softmax_grad(self, softmax):
         s = softmax.reshape(-1,1)
+        print((np.diagflat(s) - np.dot(s, s.T)).shape)
         return np.diagflat(s) - np.dot(s, s.T)
 
     def grad(self, probs, obs, action):
-        dsoftmax = self._softmax_grad(probs)[action]
-        dlog = dsoftmax / probs[action]
+        dsoftmax = self._softmax_grad(probs)
+        dlog = dsoftmax / probs
         grad = obs.dot(dlog.reshape([self.action_space, dlog.shape[0]]))
         return grad
 
@@ -36,5 +37,5 @@ class agent_REINFORCE:
             self.theta += self.alpha * grads[i] * \
                 sum([r * (self.gamma ** t) for t,r in enumerate(rewards[i:])])
 
-    def _reset_weights(self):
-        self.theta = np.random.rand(self.action_space, self.feature_space)
+    def reset_weights(self):
+        self.theta = np.random.rand(self.feature_space, self.action_space)
