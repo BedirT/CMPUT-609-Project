@@ -77,15 +77,12 @@ for p in tqdm.tqdm(range(num_of_parameters_to_test)):
             # while True:
             for _ in range(max_steps):
                 if alg == 'REINFORCE':
-                    action, probs = agent.step(state)
+                    action = agent.step(state)
                 else:
                     action = agent.step(state)
                 reward, next_state, done = env.step(action)
                 next_state = tilings.active_tiles(next_state)
                 
-                if alg == 'REINFORCE':
-                    grad = agent.grad(probs, state, action)
-                    grads.append(grad)
                 rewards.append(reward)
                 states.append(state)
                 actions.append(action)
@@ -101,10 +98,7 @@ for p in tqdm.tqdm(range(num_of_parameters_to_test)):
                 if done:
                     break
 
-            if alg == 'REINFORCE':
-                agent.update(grads, rewards)
-            else:
-                agent.update(states, actions, rewards)
+            agent.update(states, actions, rewards)
                 
             episode_rewards[p][r][ep] = score
             print("EP: ", ep, " Score: ", score, "         ",end="\r", flush=False)

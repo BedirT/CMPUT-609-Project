@@ -13,29 +13,46 @@ class agent_REINFORCE:
     def step(self, obs):
         probs = self._policy(obs)
         action = np.random.choice(self.action_space, p = probs)
-        return action, probs
+        return action
 
     def _policy(self, obs):
-        z = obs.T.dot(self.theta)
-        exp = np.exp(z)
-        return exp/np.sum(exp)
+        probs = np.zeros(self.action_space)
+        for a in range(self.action_space):
+            probs[a] = np.exp(self.theta.T.dot(self._x(obs, a)))
+        return probs/np.sum(probs)
+
+    def _gradient(self, obs, action):
+        grads = []
+        probs = self._policy(obs)
+        for b in range(self.action_space):
+            grads.append(probs[b] * self._x(obs, b))
+        return self._x(obs, action) - np.sum(grads)
+
+    def _x(self, obs, action):
+        one_hot = np.zeros_like(self.theta)
+        j = 0
+        for i in range(action * self.feature_space, ((action+1) * self.feature_space)):
+            one_hot[i] = obs[j]
+            j += 1
+        return one_hot
 
     # Jacobian softmax
-    def _softmax_grad(self, softmax):
-        s = softmax.reshape(-1,1)
-        print((np.diagflat(s) - np.dot(s, s.T)).shape)
-        return np.diagflat(s) - np.dot(s, s.T)
+    # def _softmax_grad(self, softmax):
+    #     s = softmax.reshape(-1,1)
+    #     return np.diagflat(s) - np.dot(s, s.T)
 
-    def grad(self, probs, obs, action):
-        dsoftmax = self._softmax_grad(probs)
-        dlog = dsoftmax / probs
-        grad = obs.dot(dlog.reshape([self.action_space, dlog.shape[0]]))
-        return grad
+    # def grad(self, probs, obs, action):
+    #     dsoftmax = self._softmax_grad(probs)[action, :]
+    #     print('dsoftmax---', dsoftmax.shape)
+    #     dlog = dsoftmax / probs[action]
+    #     print('dlog---', dlog.shape)
+    #     grad = obs.T.dot(dlog[None,:])
+    #     return grad
 
-    def update(self, grads, rewards):
-        for i in range(len(grads)):
-            self.theta += self.alpha * grads[i] * \
+    def update(self, observations, actions, rewards):
+        for i in range(len(observations)):
+            self.theta += self.alpha * self._gradient(observations[i], actions[i]) * \
                 sum([r * (self.gamma ** t) for t,r in enumerate(rewards[i:])])
 
     def reset_weights(self):
-        self.theta = np.random.rand(self.feature_space, self.action_space)
+        self.theta = np.random.rand(self.feature_space * self.action_space)
