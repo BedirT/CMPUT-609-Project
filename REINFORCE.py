@@ -36,19 +36,6 @@ class agent_REINFORCE:
             j += 1
         return one_hot
 
-    # Jacobian softmax
-    # def _softmax_grad(self, softmax):
-    #     s = softmax.reshape(-1,1)
-    #     return np.diagflat(s) - np.dot(s, s.T)
-
-    # def grad(self, probs, obs, action):
-    #     dsoftmax = self._softmax_grad(probs)[action, :]
-    #     print('dsoftmax---', dsoftmax.shape)
-    #     dlog = dsoftmax / probs[action]
-    #     print('dlog---', dlog.shape)
-    #     grad = obs.T.dot(dlog[None,:])
-    #     return grad
-
     def update(self, observations, actions, rewards):
         for i in range(len(observations)):
             self.theta += self.alpha * self._gradient(observations[i], actions[i]) * \
