@@ -5,7 +5,6 @@ import copy
 from grid_env import grid_environment
 from tile_coding import tile_coding
 from REINFORCE import agent_REINFORCE
-from REINFORCEv2 import agent_REINFORCE as REINFORCEv2
 from Semi_Gradient_SARSA import SG_SARSA
 import os, tqdm, time
 
@@ -20,50 +19,54 @@ seed_num:
 tile_size:
 num_of_tiles:
 '''
-alg = 'REINFORCE'
-# alg = 'SARSA'
-
-num_of_episodes = 5000
-max_steps = 1000
-num_of_runs = 1
-num_of_parameters_to_test = 1
-
-alpha = 0.5/8
-gamma = 0.98
-seed_num = 1
+params = {
+    'alg' : 'SARSA',
+    'num_of_episodes' : 1000,
+    'max_steps' : 1000,
+    'num_of_runs' : 20,
+    'num_of_parameters_to_test' : 5,
+    'alpha' : 0.00001,
+    'gamma' : 0.98,
+    'seed_num' : 1,
+    # Creating the tilings
+    'grid_size' : 5,
+    'tile_size' : 2,
+    'num_of_tiles' : 2
+}
 
 # to Render the board on terminal or not
 play_it_per = 100
 play_it = False
 
-# Creating the tilings
-grid_size = 5
-tile_size = 2
-num_of_tiles = 2
-tilings = tile_coding(grid_size, num_of_tiles, tile_size, 4)
+tilings = tile_coding(params['grid_size'], params['num_of_tiles'], params['tile_size'], 4)
 # print(tilings.num_of_tilings)
 # exit()
  
 env = grid_environment()
-np.random.seed(seed_num)
+np.random.seed(params['seed_num'])
 
 # Keep stats for final print of graph
-episode_rewards = np.zeros((num_of_parameters_to_test, num_of_runs, num_of_episodes))
-step_took = np.zeros(num_of_episodes)
+episode_rewards = np.zeros((params['num_of_parameters_to_test'], params['num_of_runs'], params['num_of_episodes']))
+step_took = np.zeros(params['num_of_episodes'])
 
-if alg == 'REINFORCE':
-    agent = agent_REINFORCE(tilings.num_of_tilings, env.action_space.shape[0], alpha, gamma)
+if params['alg'] == 'REINFORCE':
+    agent = agent_REINFORCE(tilings.num_of_tilings, env.action_space.shape[0], params['alpha'], params['gamma'])
+    # params['alpha'] = 2 ** (-13)
 else:
-    agent = SG_SARSA(tilings.num_of_tilings, env.action_space.shape[0], alpha, gamma)
+    agent = SG_SARSA(tilings.num_of_tilings, env.action_space.shape[0], params['alpha'], params['gamma'])
+    # params['alpha'] = 0.00001
 
-for p in tqdm.tqdm(range(num_of_parameters_to_test)):
-    agent.alpha = 2 ** (-p-10)
+for p in tqdm.tqdm(range(params['num_of_parameters_to_test'])):
+    params['alpha'] = 2 ** (-p-10)
+    agent.alpha = params['alpha']
 
-    for r in tqdm.tqdm(range(num_of_runs)):
-        np.random.seed(r+1)
+    for r in range(params['num_of_runs']):
+        params['seed_num'] = r+1
+        np.random.seed(params['seed_num'])
+        
         agent.reset_weights()
 
-        for ep in range(num_of_episodes):
+        for ep in range(params['num_of_episodes']):
 
             state = tilings.active_tiles(env.start()) # a x d
 
@@ -75,11 +78,8 @@ for p in tqdm.tqdm(range(num_of_parameters_to_test)):
             score = 0
             step_ = 0
             # while True:
-            for _ in range(max_steps):
-                if alg == 'REINFORCE':
-                    action = agent.step(state)
-                else:
-                    action = agent.step(state)
+            for _ in range(params['max_steps']):
+                action = agent.step(state)
                 reward, next_state, done = env.step(action)
                 next_state = tilings.active_tiles(next_state)
                 
@@ -106,18 +106,16 @@ for p in tqdm.tqdm(range(num_of_parameters_to_test)):
 
 
 ###### SAVING
+from pathlib import Path
+
 dir_path = os.path.dirname(os.path.realpath(__file__))
-if alg == 'REINFORCE':
-    np.save(dir_path +"/saves/theta/"+ alg + '_imp_' + str(time.time()), agent.theta)
-else:
-    np.save(dir_path +"/saves/w/"+ alg + '_' + str(time.time()), agent.w)
-np.save(dir_path +"/saves/rewards/"+ alg + '_imp_'+ str(num_of_runs) +'_numruns_' + str(time.time()), episode_rewards)
+
+the_time = str(time.time()) + params['alg']
+Path(dir_path + "/saves/" + the_time).mkdir(parents=True, exist_ok=True)
+
+np.save(dir_path + "/saves/"+ the_time +"/rewards", episode_rewards)
+np.save(dir_path + "/saves/"+ the_time +"/params", params)
 #############
 
-# for i in range(num_of_runs):
-#     # print(alpha_rewards[i])
-#     plt.plot(alpha_rewards[i])
-# plt.show()
-
-plt.plot(episode_rewards[0][0]/num_of_runs)
+plt.plot(episode_rewards[0][0]/params['num_of_runs'])
 plt.show()

@@ -85,16 +85,19 @@ class grid_environment:
             done = True
             self.the_world[self.goal_pos[0]][self.goal_pos[1]] = 'G'
             reward += self.reward_g
-        elif self.agent_pos == self.p1_location: # portal 1   
-            self.update_agents_pos(self.p1_des[0], self.p1_des[1])
-            self.agent_pos = self.p1_des
-            self.the_world[self.p1_location[0]][self.p1_location[1]] = 'P1'
-            self.choose_portals()
-        elif self.agent_pos == self.p2_location: # portal 2
-            self.update_agents_pos(self.p2_des[0], self.p2_des[1])
-            self.agent_pos = self.p2_des
-            self.the_world[self.p2_location[0]][self.p2_location[1]] = 'P2'
-            self.choose_portals()
+            return reward, self.agent_pos, done
+
+        if self.env_type == 'Stochastic':
+            if self.agent_pos == self.p1_location: # portal 1   
+                self.update_agents_pos(self.p1_des[0], self.p1_des[1])
+                self.agent_pos = self.p1_des
+                self.the_world[self.p1_location[0]][self.p1_location[1]] = 'P1'
+                self.choose_portals()
+            if self.agent_pos == self.p2_location: # portal 2
+                self.update_agents_pos(self.p2_des[0], self.p2_des[1])
+                self.agent_pos = self.p2_des
+                self.the_world[self.p2_location[0]][self.p2_location[1]] = 'P2'
+                self.choose_portals()
         
         return reward, self.agent_pos, done
 
@@ -136,37 +139,42 @@ class grid_environment:
         #     ['.', '.', '.', '.' , '|', '.', '.', '.', '.'],
         #     ['D2','.', '.', '.' , '.', '.', '.', '.', 'P2']
         # ]
+        # env_type = 'Stochastic'
+        self.env_type = 'nope'
 
-        self.the_world = [
-            ['.', 'D1', '|', '.', 'P1'],
-            ['G', '.' , '|', '.', '.'],
-            ['-', '-' , '|', '.', '-'],
-            ['A', '.' , '|', '.', '.'],
-            ['D2','.' , '.', '.', 'P2'],
-        ]
+        if self.env_type == 'Stochastic':
+            self.the_world = [
+                ['.', 'D1', '|', '.', 'P1'],
+                ['G', '.' , '|', '.', '.'],
+                ['-', '-' , '|', '.', '-'],
+                ['A', '.' , '|', '.', '.'],
+                ['D2','.' , '.', '.', 'P2'],
+            ]
+            # self.the_world = [
+            #     ['.', '.', '.', 'D1', '|', '.', '.', '.', 'P1'],
+            #     ['.', '.', '.', '.' , '|', '.', '.', '.', '.'],
+            #     ['.', '.', '.', '.' , '|', '.', '.', '.', '.'],
+            #     ['G', '.', '.', '.' , '.', '.', '.', '.', '.'],
+            #     ['-', '-', '-', '-' , '|', '.', '-', '-', '-'],
+            #     ['A', '.', '.', '.' , '|', '.', '.', '.', '.'],
+            #     ['.', '.', '.', '.' , '|', '.', '.', '.', '.'],
+            #     ['.', '.', '.', '.' , '|', '.', '.', '.', '.'],
+            #     ['D2','.', '.', '.' , '.', '.', '.', '.', 'P2']
+            # ]
+            self.agent_start_pos = [5, 0]
+            self.goal_pos = [3, 0]
 
-        self.the_world = [
-            ['.', '.' , '.', '.', 'G'],
-            ['.', '.' , '.', '.', '.'],
-            ['.', '.' , '.', '.', '.'],
-            ['.', '.' , '.', '.', '.'],
-            ['A', '.' , '.', '.', '.'],
-        ]
+        else:
+            self.the_world = [
+                ['.', '.' , '.', '|', 'G'],
+                ['.', '|' , '.', '|', '.'],
+                ['.', '|' , '.', '|', '.'],
+                ['.', '|' , '.', '|', '.'],
+                ['A', '|' , '.', '.', '.'],
+            ]
+            self.agent_start_pos = [4, 0]
+            self.goal_pos = [0, 4]
 
-        # self.the_world = [
-        #     ['.','.', '.', '.' , '.', '.', '.', '.', 'G'],
-        #     ['.','.', '.', '.' , '.', '.', '.', '.', '.'],
-        #     ['.','.', '.', '.' , '.', '.', '.', '.', '.'],
-        #     ['.','.', '.', '.' , '.', '.', '.', '.', '.'],
-        #     ['.','.', '.', '.' , '.', '.', '.', '.', '.'],
-        #     ['.','.', '.', '.' , '.', '.', '.', '.', '.'],
-        #     ['.','.', '.', '.' , '.', '.', '.', '.', '.'],
-        #     ['.','.', '.', '.' , '.', '.', '.', '.', '.'],
-        #     ['A','.', '.', '.' , '.', '.', '.', '.', '.']
-        # ]
-
-        self.agent_start_pos = [4, 0]
-        # self.agent_start_pos = [3, 0]
         self.agent_pos = self.agent_start_pos
 
         self.reward_b = 0 # reward when hitting the walls or boundries 
@@ -178,9 +186,6 @@ class grid_environment:
 
         self.d1_location = [0, 1]
         self.d2_location = [4, 0]
-        
-        # self.goal_pos = [1, 0]
-        self.goal_pos = [0, 4]
         
         self.grid_size = len(self.the_world)
  

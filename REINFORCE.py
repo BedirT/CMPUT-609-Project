@@ -18,15 +18,17 @@ class agent_REINFORCE:
     def _policy(self, obs):
         probs = np.zeros(self.action_space)
         for a in range(self.action_space):
-            probs[a] = np.exp(self.theta.T.dot(self._x(obs, a)))
+            probs[a] = self.theta.T.dot(self._x(obs, a))
+        probs = np.exp(probs)
+        # print(probs)
         return probs/np.sum(probs)
 
     def _gradient(self, obs, action):
-        grads = []
+        grads = np.zeros_like(self.theta)
         probs = self._policy(obs)
         for b in range(self.action_space):
-            grads.append(probs[b] * self._x(obs, b))
-        return self._x(obs, action) - np.sum(grads)
+            grads += self._x(obs, b) * probs[b]
+        return self._x(obs, action) - grads
 
     def _x(self, obs, action):
         one_hot = np.zeros_like(self.theta)
@@ -34,6 +36,7 @@ class agent_REINFORCE:
         for i in range(action * self.feature_space, ((action+1) * self.feature_space)):
             one_hot[i] = obs[j]
             j += 1
+        # print(one_hot)
         return one_hot
 
     def update(self, observations, actions, rewards):
@@ -41,5 +44,8 @@ class agent_REINFORCE:
             self.theta += self.alpha * self._gradient(observations[i], actions[i]) * \
                 sum([r * (self.gamma ** t) for t,r in enumerate(rewards[i:])])
 
+ 
     def reset_weights(self):
         self.theta = np.random.rand(self.feature_space * self.action_space)
+        
+        
