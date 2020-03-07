@@ -3,6 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import copy 
 from grid_env import grid_environment
+from grid_env_random_wind import grid_environment_wind
 from tile_coding import tile_coding
 from REINFORCE import agent_REINFORCE
 from Semi_Gradient_SARSA import SG_SARSA
@@ -20,18 +21,20 @@ tile_size:
 num_of_tiles:
 '''
 params = {
-    'alg' : 'SARSA',
+    'alg' : 'REINFORCE',
     'num_of_episodes' : 1000,
     'max_steps' : 1000,
-    'num_of_runs' : 20,
-    'num_of_parameters_to_test' : 5,
+    'num_of_runs' : 100,
+    'num_of_parameters_to_test' : 1,
+    'start_parameter_search_from' : -13,
     'alpha' : 0.00001,
     'gamma' : 0.98,
     'seed_num' : 1,
     # Creating the tilings
     'grid_size' : 5,
     'tile_size' : 2,
-    'num_of_tiles' : 2
+    'num_of_tiles' : 2,
+    'stochasticity': False,
 }
 
 # to Render the board on terminal or not
@@ -42,7 +45,7 @@ tilings = tile_coding(params['grid_size'], params['num_of_tiles'], params['tile_
 # print(tilings.num_of_tilings)
 # exit()
  
-env = grid_environment()
+env = grid_environment(params['stochasticity'])
 np.random.seed(params['seed_num'])
 
 # Keep stats for final print of graph
@@ -56,11 +59,11 @@ else:
     agent = SG_SARSA(tilings.num_of_tilings, env.action_space.shape[0], params['alpha'], params['gamma'])
     # params['alpha'] = 0.00001
 
-for p in tqdm.tqdm(range(params['num_of_parameters_to_test'])):
-    params['alpha'] = 2 ** (-p-10)
+for p in range(params['num_of_parameters_to_test']):
+    params['alpha'] = 2 ** (-p + params['start_parameter_search_from'])
     agent.alpha = params['alpha']
 
-    for r in range(params['num_of_runs']):
+    for r in tqdm.tqdm(range(params['num_of_runs'])):
         params['seed_num'] = r+1
         np.random.seed(params['seed_num'])
         
@@ -110,12 +113,12 @@ from pathlib import Path
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 
-the_time = str(time.time()) + params['alg']
+the_time = str(time.time()) + params['alg'] + 'fail'
 Path(dir_path + "/saves/" + the_time).mkdir(parents=True, exist_ok=True)
 
 np.save(dir_path + "/saves/"+ the_time +"/rewards", episode_rewards)
 np.save(dir_path + "/saves/"+ the_time +"/params", params)
 #############
 
-plt.plot(episode_rewards[0][0]/params['num_of_runs'])
+plt.plot(episode_rewards[0][0])
 plt.show()

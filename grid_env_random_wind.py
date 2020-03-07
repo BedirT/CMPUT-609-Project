@@ -24,7 +24,7 @@ the results), starting with %60 D1 for the P1 and %40 D1 for the P2.
 from numpy import random
 import numpy as np
 
-class grid_environment:
+class grid_environment_wind:
 
     def __init__(self, stochasticity=False):
         self.stochasticity = stochasticity
@@ -41,6 +41,10 @@ class grid_environment:
         # self.reward_t = self.roomLoc()
         # pos[1]: x
         # pos[0]: y
+        eps = 0.2 # eps percentage to move randomly
+        if np.random.rand() < eps:
+            # move randomly
+            action = np.random.randint(1, 4)
         if action == 0: # w: x-1
             if self.agent_pos[1] - 1 < 0 or self.the_world[self.agent_pos[0]][self.agent_pos[1]-1] == '|'\
                 or self.the_world[self.agent_pos[0]][self.agent_pos[1]-1] == '-':
@@ -141,26 +145,28 @@ class grid_environment:
         #     ['D2','.', '.', '.' , '.', '.', '.', '.', 'P2']
         # ]
         if self.stochasticity:
-            self.the_world = [
-                ['.', 'D1', '|', '.', 'P1'],
-                ['G', '.' , '|', '.', '.'],
-                ['-', '-' , '|', '.', '-'],
-                ['A', '.' , '|', '.', '.'],
-                ['D2','.' , '.', '.', 'P2'],
-            ]
             # self.the_world = [
-            #     ['.', '.', '.', 'D1', '|', '.', '.', '.', 'P1'],
-            #     ['.', '.', '.', '.' , '|', '.', '.', '.', '.'],
-            #     ['.', '.', '.', '.' , '|', '.', '.', '.', '.'],
-            #     ['G', '.', '.', '.' , '.', '.', '.', '.', '.'],
-            #     ['-', '-', '-', '-' , '|', '.', '-', '-', '-'],
-            #     ['A', '.', '.', '.' , '|', '.', '.', '.', '.'],
-            #     ['.', '.', '.', '.' , '|', '.', '.', '.', '.'],
-            #     ['.', '.', '.', '.' , '|', '.', '.', '.', '.'],
-            #     ['D2','.', '.', '.' , '.', '.', '.', '.', 'P2']
+            #     ['.', 'D1', '|', '.', 'P1'],
+            #     ['G', '.' , '|', '.', '.'],
+            #     ['-', '-' , '|', '.', '-'],
+            #     ['A', '.' , '|', '.', '.'],
+            #     ['D2','.' , '.', '.', 'P2'],
             # ]
-            self.agent_start_pos = [3, 0]
-            self.goal_pos = [1, 0]
+            self.the_world = [
+                ['.', '.', '.', 'D1', '|', '.', '.', '.', 'P1'],
+                ['.', '.', '.', '.' , '|', '.', '.', '.', '.'],
+                ['.', '.', '.', '.' , '|', '.', '.', '.', '.'],
+                ['G', '.', '.', '.' , '|', '.', '.', '.', '.'],
+                ['-', '-', '-', '-' , '|', '.', '-', '-', '-'],
+                ['A', '.', '.', '.' , '|', '.', '.', '.', '.'],
+                ['.', '.', '.', '.' , '|', '.', '.', '.', '.'],
+                ['.', '.', '.', '.' , '|', '.', '.', '.', '.'],
+                ['D2','.', '.', '.' , '.', '.', '.', '.', 'P2']
+            ]
+            # self.agent_start_pos = [3, 0]
+            self.agent_start_pos = [5, 0]
+            self.goal_pos = [3, 0]
+            # self.goal_pos = [1, 0]
 
         else:
             self.the_world = [
